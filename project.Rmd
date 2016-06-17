@@ -40,13 +40,13 @@ ggplot(wines, aes(x=quality)) +
 
 The histogram doesn't show a clear skew either way, but we can see that there are very few poor quality wines with a quality score of 3, very few high quality wines with a quality score of 9, and that the majority has a quality score between 5 and 7. We also do not see any fractional scores. As such, we can consider quality as an ordered categorical variable.
 
-```{r echo=FALSE}
+```{r}
 wines$quality <- factor(wines$quality, ordered=TRUE)
 ```
 
 All features seem to have their minimum and / or maximum values considerably further away from their first and third quantiles. This indicates outliers, and it will be useful to only consider dropping the top and bottom 1% for all the features.
 
-```{r echo=FALSE, warning=FALSE, Histograms, message=FALSE}
+```{r warning=FALSE, Histograms, message=FALSE}
 melted_data <- melt(wines, id.vars='quality', variable.name='feature')
 ggplot(melted_data, aes(value)) +
   geom_histogram() +
@@ -109,9 +109,12 @@ The distributions look nearly normal, and unimodal for all the features except f
 
 We see that a common measure associated with wines, bound sulphur dioxide, is not present in the dataset. We can create a feature for this, and plot its distribution:
 
-```{r echo=FALSE}
+```{r}
 wines$bound.sulfur.dioxide <- wines$total.sulfur.dioxide - 
   wines$free.sulfur.dioxide
+```
+
+```{r echo=FALSE}
 summary(wines$bound.sulfur.dioxide)
 ggplot(aes(x = bound.sulfur.dioxide), data = wines) +
   xlim(quantile(wines$bound.sulphur.dioxide, 0.01),
@@ -121,7 +124,9 @@ ggplot(aes(x = bound.sulfur.dioxide), data = wines) +
 
 We see the distribution of bound sulphur dioxide is nearly normal, and unimodal. Even after disregarding the top and bottom 1% ass outliers, we see that long tails are still present.
 
-```{r echo=FALSE}
+Lastly, we take the log of the residual sugar, to cater for the skew.
+
+```{r}
 wines$residual.sugar <- log(wines$residual.sugar)
 ```
 
@@ -147,7 +152,7 @@ I noticed skew in the residual.sugar feature. I took its log transformation. I a
 
 We can start off with a pairs plot:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, cache=FALSE, Bivariate_Plots}
+```{r echo=FALSE, warning=FALSE, message=FALSE, Bivariate_Plots}
 ggpairs(wines)
 ```
 
@@ -155,7 +160,7 @@ The plot is difficult to read, and a larger, clearer version (called pairs.png) 
 
 The plot doesn't show correlation figures for quality, as quality is a categorical variable. Let's look at the correlation numbers by considering it to be numeric:
 
-```{r echo=FALSE}
+```{r}
 wines2 <- wines
 wines2$quality <- as.numeric(as.character(wines$quality))
 cor(wines2)
@@ -184,7 +189,7 @@ grid.arrange(s1, s2, s3, s4)
 
 There looks to be some overplotting, and a presene of outliers. Adding some jitter and transparency, and limiting the axes, we get:
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 s1<- ggplot(aes(x = alcohol, y = quality), data = wines) +
   geom_point() + geom_jitter(alpha = 1/20) +
   xlim(quantile(wines$alcohol, 0.01),
@@ -225,7 +230,7 @@ We see some high quality wines around the 9 mark, but then a steady increase in 
 
 We can bucketize wine quality into three buckets - low (less than 6), medium (between 6 and 7), and high (higher than 7):
 
-```{r echo=FALSE}
+```{r}
 wines$quality.int <- as.integer(as.character(wines$quality))
 wines$quality.bucket <- with(wines, cut(wines$quality.int, breaks=c(2, 5, 7, 10), ordered=TRUE))
 ```
@@ -322,7 +327,6 @@ ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_line(aes(color=quality))
 This is quite messy. Let's bucket the quality into three categories - poor (quality < 5), mediocre (quality < 8), and high. 
 
 ```{r echo=FALSE}
-
 ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_line(aes(color=quality.bucket))
 ```
 
@@ -363,7 +367,7 @@ We see that at higher alcohol levels, high quality wine has higher levels of fre
 
 We can create a model with alcohol, density, chlorides, and free and bound sulfur dioxide as predictors.
 
-```{r echo=FALSE}
+```{r}
 set.seed(41756)
 trainIndexes <- createDataPartition(wines$quality, p=0.8, list=FALSE)
 train <- wines[trainIndexes,]

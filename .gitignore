@@ -3,4 +3,6 @@ project_cache/
 *.swp
 .RData
 .Rhistory
+project.html
+project_files/
 
