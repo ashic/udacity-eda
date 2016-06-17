@@ -1,0 +1,6 @@
+data/
+project_cache/
+*.swp
+.RData
+.Rhistory
+
