@@ -152,8 +152,8 @@ I noticed skew in the residual.sugar feature. I took its log transformation. I a
 
 We can start off with a pairs plot:
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, Bivariate_Plots}
-ggpairs(wines)
+```{r echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=20, fig.height=20, Bivariate_Plots}
+ggpairs(wines) + theme(axis.text = element_blank(), axis.ticks=element_blank())
 ```
 
 The plot is difficult to read, and a larger, clearer version (called pairs.png) is included in the source code repository.
@@ -190,8 +190,8 @@ grid.arrange(s1, s2, s3, s4)
 There looks to be some overplotting, and a presene of outliers. Adding some jitter and transparency, and limiting the axes, we get:
 
 ```{r echo=FALSE, warning=FALSE}
-s1<- ggplot(aes(x = alcohol, y = quality), data = wines) +
-  geom_point() + geom_jitter(alpha = 1/20) +
+s1<- ggplot(aes(y = alcohol, x = quality), data = wines) +
+  geom_point() + geom_jitter(alpha = 1/20)
   xlim(quantile(wines$alcohol, 0.01),
        quantile(wines$alcohol, 0.99))  
 s2 <- ggplot(aes(x = density, y = quality), data = wines) +
@@ -208,6 +208,8 @@ s4 <- ggplot(aes(x = chlorides, y = quality), data = wines) +
        quantile(wines$chlorides, 0.99))  
 grid.arrange(s1, s2, s3, s4)
 ```
+
+
 
 We see slight increase in quality with the increase of alcohol, however there does seem to be some cases if wines with lower levels of acohol achieving a quality score of 8. This may suggest two groups of wines. From the jitter-clouds, we see a decrease in quality with the increase in density, bound sulphur dioxide, and chlorides. 
 
@@ -319,21 +321,32 @@ The strongest relationship is the obvious one - the one between total sulphur di
 
 We can start off with plotting alcohol vs chlorides by quality.
 
-```{r echo=FALSE, Multivariate_Plots}
-ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_line(aes(color=quality))
-
+```{r echo=FALSE, warning=FALSE, Multivariate_Plots}
+ggplot(aes(x = alcohol, 
+           y = chlorides, 
+           color = quality), 
+       data = wines) +
+      geom_point(alpha = 0.05, size = 2) +
+      geom_smooth(method = "loess", se = FALSE,size=1)+ylim(0, 0.2)
 ```
 
 This is quite messy. Let's bucket the quality into three categories - poor (quality < 5), mediocre (quality < 8), and high. 
 
-```{r echo=FALSE}
-ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_line(aes(color=quality.bucket))
+```{r echo=FALSE, warning=FALSE }
+ggplot(aes(x = alcohol, 
+           y = chlorides, 
+           color = quality.bucket), 
+       data = wines) +
+      geom_point(alpha = 0.05, size = 2) +
+      geom_smooth(method = "loess", se = FALSE,size=1) + ylim(0, 0.2)
 ```
 
 This is still noisy, however we can see that higher quality wines seem to have lower levels of chlorides. We can smooth this, and drop the 0.01 and 0.99  quantiles for alcohol and chrlorised, and see what that shows us.
 
-```{r echo=FALSE}
-ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_smooth(aes(color=quality.bucket)) +
+```{r echo=FALSE, warning=FALSE}
+ggplot(wines, aes(x=alcohol, y=chlorides, color = quality.bucket)) + 
+  geom_smooth(method = "loess", se = FALSE,size=1) + ylim(0, 0.2) +
+  geom_point(alpha = 0.05, size = 2) +
   xlim(quantile(wines$alcohol, 0.01),
        quantile(wines$alcohols, 0.99)) +
   ylim(quantile(wines$chlorides, 0.01),
@@ -346,7 +359,9 @@ This shows us a steady drop in chloride levels with the rise of alcohol levels f
 We can draw a similar plot, but using bound sulfur dioxide, instead of chlorides:
 
 ```{r echo=FALSE, warning=FALSE}
-ggplot(wines, aes(x=alcohol, y=bound.sulfur.dioxide)) + geom_smooth(aes(color=quality.bucket)) +
+ggplot(wines, aes(x=alcohol, y=bound.sulfur.dioxide, color=quality.bucket)) +
+  geom_smooth(method = "loess", se = FALSE,size=1) + ylim(0, 0.2) +
+  geom_point(alpha = 0.05, size = 2) +
   xlim(quantile(wines$alcohol, 0.01),
        quantile(wines$alcohols, 0.99)) +
   ylim(quantile(wines$bound.sulfur.dioxide, 0.01),
@@ -356,7 +371,9 @@ ggplot(wines, aes(x=alcohol, y=bound.sulfur.dioxide)) + geom_smooth(aes(color=qu
 There seems to be some relationship, but it's a little unclear. Let's use free sulphur dioxide instead:
 
 ```{r echo=FALSE, warning=FALSE}
-ggplot(wines, aes(x=alcohol, y=free.sulfur.dioxide)) + geom_smooth(aes(color=quality.bucket)) +
+ggplot(wines, aes(x=alcohol, y=free.sulfur.dioxide, color=quality.bucket)) + 
+  geom_smooth(method = "loess", se = FALSE,size=1) + ylim(0, 0.2) +
+  geom_point(alpha = 0.05, size = 2) +
   xlim(quantile(wines$alcohol, 0.01),
        quantile(wines$alcohols, 0.99)) +
   ylim(quantile(wines$free.sulfur.dioxide, 0.01),
@@ -442,12 +459,14 @@ We present a density plot of alcohol levels (% by volume) by wine quality. We se
 ### Plot Two
 
 ```{r echo=FALSE, warning=FALSE, Plot_Two}
-
-ggplot(wines, aes(x=alcohol, y=chlorides)) + geom_smooth(aes(color=quality.bucket)) +
+ggplot(wines, aes(x=alcohol, y=chlorides, color=quality.bucket)) + 
+  geom_smooth(method = "loess", se = FALSE,size=2) + ylim(0, 0.2) +
+  geom_point(alpha = 0.05, size = 2) +
   xlim(quantile(wines$alcohol, 0.01),
        quantile(wines$alcohols, 0.99)) +
   ylim(quantile(wines$chlorides, 0.01),
        quantile(wines$chlorides, 0.99)) + 
+  coord_cartesian(ylim=c(0.02, 0.07)) + 
   xlab("Alcohol (% by volume)") +
   ylab("Chlorides (Sodium Chloride - g / dm^3)") +
   scale_colour_discrete(name = "Wine Quality", labels=c("Low", "Medium", "High")) +
